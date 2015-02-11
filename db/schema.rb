@@ -11,9 +11,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 0) do
+ActiveRecord::Schema.define(version: 20150210182806) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "imports", force: true do |t|
+    t.string   "import_type"
+    t.string   "filename"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "stock_items", id: false, force: true do |t|
+    t.integer  "id",               null: false
+    t.string   "description"
+    t.string   "price"
+    t.string   "cost"
+    t.string   "price_type"
+    t.integer  "quantity_on_hand"
+    t.text     "modifiers"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
 end
