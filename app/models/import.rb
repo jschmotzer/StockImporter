@@ -5,9 +5,7 @@ class Import < ActiveRecord::Base
 
   VALID_FILE_TYPES = ['text/csv']
 
-  #Handles the file import
-  #param [String] klass
-  #param [File] uploaded file
+  #Handles the file import based on format type
   def handle_import_file(klass, file)
     case file.content_type
     when 'text/csv'
@@ -15,6 +13,7 @@ class Import < ActiveRecord::Base
     end 
   end
 
+  #Processes the csv. Creates a new record for each row and returns JSON for imported file.
   def handle_csv(klass, file)
     imported_rows = import_csv(file)
     imported_rows = imported_rows.map do |row|
@@ -24,12 +23,10 @@ class Import < ActiveRecord::Base
       new_object = klass.constantize.import_row(transformed_row)
       new_object.save
       transformed_row
-      #get new ids to create json
-      # row_ids << new_object.id
     end
-    # get_imported_file_json(klass, row_ids)
   end
 
+  #Reads CSV file with headers
   def import_csv(file)
     rows = []
     CSV.foreach(file.path, headers: true) do |row|
@@ -38,20 +35,23 @@ class Import < ActiveRecord::Base
     rows
   end
 
+  #Maps the CSV file headers to the column name used on each model.
   def transform_row(row, transformed_modifiers, klass)
     row['modifiers'] = transformed_modifiers
     row.reject! { |k,v| /modifier_\d/.match(k) }
-    mapped_column_names = Hash[row.map { |k,v| [klass.constantize.import_columns[k], v] }]
+    mapped_column_names = Hash[row.map { |k,v| [klass.constantize.map_columns[k], v] }]
   end
 
+  #Finds all modifiers in a csv row and returns an array of objects.
   def transform_modifiers(row)
     modifiers = []
     #grab pairs of modifiers - name, price
-    #each_slice(2)
+    #Could have used each_slice(2), but was uncertain of the number of modifiers.
     matched_modifiers = row.select {|k,v| /modifier_\d/.match(k)}
     # matched_modifiers
     matched_length = matched_modifiers.length
     modifiers = []
+    #Used the length of the modifiers to be certain objects were grouped correctly according to modifier number
     (1..matched_length).each do |num|
       results = matched_modifiers.select { |k, v| k =~ /modifier_#{num}/ }
       results.keys.each do |k|
@@ -66,10 +66,6 @@ class Import < ActiveRecord::Base
 
   def valid_file_type?(import_params)
     VALID_FILE_TYPES.include?(import_params[:file].content_type)
-  end
-
-  def get_imported_file_json(klass, row_ids)
-    imported_json = klass.constantize.where(id: [row_ids]).to_json
   end
 
 end

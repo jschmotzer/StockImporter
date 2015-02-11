@@ -4,9 +4,7 @@ module Models
   end
 
   module ClassMethods
-    #Imports a single row
-    #param [Hash] row
-    #return [Object] imported object
+    #Creates a new object from a single row
     def import_row(row)
       self.new(row)
     end

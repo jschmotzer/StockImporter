@@ -5,7 +5,7 @@ class StockItem < ActiveRecord::Base
 
   serialize(:modifiers, Array)
 
-  def self.import_columns
+  def self.map_columns
     {
       'item id' => 'id', 
       'description' => 'description',
